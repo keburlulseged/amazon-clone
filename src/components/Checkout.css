@@ -4,14 +4,19 @@
   height: max-content;
 }
 
+.checkoutAd {
+  width: 100%;
+  margin-bottom: 10px
+}
+
 .checkoutBody {
   display: flex;
   padding: 20px;
   height: max-content;
 }
-.checkoutAd {
+
+.checkoutLeft {
   width: 100%;
-  margin-bottom: 10px
 }
 
 .checkoutTitle {
