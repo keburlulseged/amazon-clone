@@ -17,7 +17,6 @@ function App() {
   useEffect(() => {
     //Run only once when the App component loads...
     auth.onAuthStateChanged(authUser => {
-      console.log(authUser);
       if (authUser) {
         dispatch({
           type: 'SET_USER',
