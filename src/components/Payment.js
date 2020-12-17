@@ -1,31 +1,65 @@
-import React, { useState } from 'react'
-import './Payment.css'
-import CheckoutProduct from './CheckoutProduct';
+import React, { useState, useEffect } from "react";
+import { useHistory } from 'react-router-dom';
+import "./Payment.css";
+import CheckoutProduct from "./CheckoutProduct";
 import { useStateValue } from "../context/StateProvider";
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import CurrencyFormat from 'react-currency-format';
-import { getBasketTotal } from '../context/reducer';
+import CurrencyFormat from "react-currency-format";
+import { getBasketTotal } from "../context/reducer";
+import axios from '../axios';
 
 function Payment() {
   const [{ basket, user }, dispatch] = useStateValue();
+  const history = useHistory();
 
   const stripe = useStripe();
   const elements = useElements();
 
+  const [succeeded, setSucceeded] = useState(false);
+  const [processing, setProcessing] = useState("");
   const [error, setError] = useStateValue(null);
   const [disabled, setDisabled] = useStateValue(true);
+  const [clientSecret, setClientSecret] = useStateValue(true);
 
-  const handleSubmit = e => {
+  useEffect(() => {
+    // generate the special stripe secret which allows us to charge customers
+    const getClientSecret = async () => {
+      const response = await axios({
+        method: 'post',
+        //Stripe expoects the total in a currencies subunits (ie cents)
+        url: `/payments/create?total=${getBasketTotal(basket) * 100}`
+      });
+      setClientSecret(response.data.clientSecret);
+    }
+    getClientSecret();
+  }, [basket])
 
-  }
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setProcessing(true);
 
-  const handleChange = e => {
+    const payload = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: {
+        card: elements.getElement(CardElement),
+      }
+    }).then(({ paymentIntent }) => {
+      // paymentIntent = payment confirmation
+      setSucceeded(true);
+      setError(null);
+      setProcessing(false);
+
+      history.replace('/orders')
+    })
+
+  };
+
+  const handleChange = (event) => {
     //Listen for changes in the Card Element
     //and display any errors as the customer types their card details
-    setDisabled(e.empty);
-    setError(e.error ? e.error.message : "");
-  }
+    setDisabled(event.empty);
+    setError(event.error ? event.error.message : "");
+  };
 
   return (
     <div className="payment">
@@ -48,7 +82,7 @@ function Payment() {
             <h3>Review items and delivery</h3>
           </div>
           <div className="paymentItems">
-             {basket.map(item => (
+            {basket.map((item) => (
               <CheckoutProduct
                 id={item.id}
                 title={item.title}
@@ -65,7 +99,7 @@ function Payment() {
           </div>
           <div className="paymentDetails">
             <form onSubmit={handleSubmit}>
-              <CardElement onChange={handleChange}/>
+              <CardElement onChange={handleChange} />
 
               <div className="paymentPriceContainer">
                 <CurrencyFormat
@@ -80,17 +114,17 @@ function Payment() {
                   thousandSeparator={true}
                   prefix={"$"}
                 />
+                <button disabled={processing || disabled || succeeded}>
+                  <span>{processing ? <p>Processing</p> : "Buy Now"}</span>
+                </button>
               </div>
+              {/* {error && <div>{error}</div>} */}
             </form>
-
           </div>
-
         </div>
-
       </div>
     </div>
-  )
+  );
 }
 
 export default Payment;
-
