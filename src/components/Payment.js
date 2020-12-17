@@ -1,11 +1,31 @@
-import React from 'react'
+import React, { useState } from 'react'
 import './Payment.css'
 import CheckoutProduct from './CheckoutProduct';
 import { useStateValue } from "../context/StateProvider";
 import { Link } from 'react-router-dom';
+import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import CurrencyFormat from 'react-currency-format';
+import { getBasketTotal } from '../context/reducer';
 
 function Payment() {
   const [{ basket, user }, dispatch] = useStateValue();
+
+  const stripe = useStripe();
+  const elements = useElements();
+
+  const [error, setError] = useStateValue(null);
+  const [disabled, setDisabled] = useStateValue(true);
+
+  const handleSubmit = e => {
+
+  }
+
+  const handleChange = e => {
+    //Listen for changes in the Card Element
+    //and display any errors as the customer types their card details
+    setDisabled(e.empty);
+    setError(e.error ? e.error.message : "");
+  }
 
   return (
     <div className="payment">
@@ -28,27 +48,6 @@ function Payment() {
             <h3>Review items and delivery</h3>
           </div>
           <div className="paymentItems">
-          {/* <CheckoutProduct
-            id={1}
-            title="Ergonomic Office Chair PC Gaming Chair Cheap Desk Chair PU Leather Executive Rolling Swivel Chair Computer Lumbar Support for Women, Men"
-            price={149.99}
-            image="https://images-na.ssl-images-amazon.com/images/I/61WUnfXn1GL._AC_SL1500_.jpg"
-            rating={5}
-          />
-          <CheckoutProduct
-            id={2}
-            title="Ergonomic Office Chair PC Gaming Chair Cheap Desk Chair PU Leather Executive Rolling Swivel Chair Computer Lumbar Support for Women, Men"
-            price={149.99}
-            image="https://images-na.ssl-images-amazon.com/images/I/61WUnfXn1GL._AC_SL1500_.jpg"
-            rating={5}
-          />
-          <CheckoutProduct
-            id={3}
-            title="Ergonomic Office Chair PC Gaming Chair Cheap Desk Chair PU Leather Executive Rolling Swivel Chair Computer Lumbar Support for Women, Men"
-            price={149.99}
-            image="https://images-na.ssl-images-amazon.com/images/I/61WUnfXn1GL._AC_SL1500_.jpg"
-            rating={5}
-          /> */}
              {basket.map(item => (
               <CheckoutProduct
                 id={item.id}
@@ -57,7 +56,7 @@ function Payment() {
                 price={item.price}
                 rating={item.rating}
               />
-            ))} 
+            ))}
           </div>
         </div>
         <div className="paymentSection">
@@ -65,8 +64,25 @@ function Payment() {
             <h3>Payment Method</h3>
           </div>
           <div className="paymentDetails">
+            <form onSubmit={handleSubmit}>
+              <CardElement onChange={handleChange}/>
 
-        {/**Payment section - strip magic */}
+              <div className="paymentPriceContainer">
+                <CurrencyFormat
+                  renderText={(value) => (
+                    <>
+                      <h3>Order Total: {value}</h3>
+                    </>
+                  )}
+                  decimalScale={2}
+                  value={getBasketTotal(basket)}
+                  displayType={"text"}
+                  thousandSeparator={true}
+                  prefix={"$"}
+                />
+              </div>
+            </form>
+
           </div>
 
         </div>
