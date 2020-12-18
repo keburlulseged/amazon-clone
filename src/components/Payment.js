@@ -49,9 +49,10 @@ function Payment() {
         }
       }).then(({ paymentIntent }) => {
         // paymentIntent = payment confirmation
-        console.log(paymentIntent)
-        db.collection('users').doc(user?.uid)
-        .collection('orders').doc(paymentIntent.id)
+        db.collection('users')
+        .doc(user?.uid)
+        .collection('orders')
+        .doc(paymentIntent.id)
         .set({
           basket: basket,
           amount: paymentIntent.amount,

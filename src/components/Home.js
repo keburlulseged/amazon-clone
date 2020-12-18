@@ -46,7 +46,7 @@ function Home() {
             id="325435435"
             title="Clean Code: A Handbook of Agile Software Craftsmanship 1st Edition
             "
-            price="36.74"
+            price={36.74}
             image="https://images-na.ssl-images-amazon.com/images/I/41yafGMO+rL._SX376_BO1,204,203,200_.jpg"
             rating={5}
           />
